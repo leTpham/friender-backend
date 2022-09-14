@@ -37,7 +37,7 @@ def add_user_to_g():
     else:
         g.user = None
 
-# TODO: How to get form info from JS to python?
+# TODO: How to get form info from JS to python? request.form? 
 @app.route('/signup', methods="POST")
 
 
@@ -45,6 +45,7 @@ def add_user_to_g():
 
 
 @app.route('/logout', method="POST")
+
 
 ##############################################################################
 # General user routes: IF LOGGED IN
