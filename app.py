@@ -9,21 +9,23 @@ from sqlalchemy.exc import IntegrityError
 
 from models import db, connect_db, User
 
+import jwt
 
 load_dotenv()
-AWS_ACCESS_KEY_ID=os.environ['AWS_ACCESS_KEY_ID']
-AWS_SECRET_ACCESS_KEY=os.environ['AWS_SECRET_ACCESS_KEY']
-DATABSE_URL=os.environ['DATABASE_URL']
-BUCKET_NAME=os.environ['BUCKET_NAME']
+AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
+AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
+DATABSE_URL = os.environ['DATABASE_URL']
+BUCKET_NAME = os.environ['BUCKET_NAME']
+SECRET_KEY = os.environ['SECRET_KEY']
 
 
 CURR_USER_KEY = "curr_user"
 
 s3 = boto3.client(
-  "s3",
-  "us-west-1",
-  aws_access_key_id=AWS_ACCESS_KEY_ID,
-  aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    "s3",
+    "us-west-1",
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )
 
 app = Flask(__name__)
@@ -32,7 +34,7 @@ app = Flask(__name__)
 # if not set there, use development local db.
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///friender'
-    # os.environ['DATABASE_URL'].replace("postgres://", "postgresql://"))
+# os.environ['DATABASE_URL'].replace("postgres://", "postgresql://"))
 app.config['SQLALCHEMY_ECHO'] = False
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 
@@ -41,8 +43,12 @@ connect_db(app)
 ##############################################################################
 # User signup/login/logout
 
+def createToken(username):
+    encoded_jwt = jwt.encode({"user": username} , SECRET_KEY, algorithm='HS256')
+    return encoded_jwt
+
 def upload_image_get_url(image, username):
-    #Create bucket later for this app
+    # Create bucket later for this app
 
     # key = username
     # content_type ='image/jpeg'
@@ -61,13 +67,14 @@ def upload_image_get_url(image, username):
     content_type = 'request.mimetype'
     image_file = image
     region = 'us-west-1'
-    location = boto3.client('s3').get_bucket_location(Bucket=BUCKET_NAME)['LocationConstraint']
+    location = boto3.client('s3').get_bucket_location(
+        Bucket=BUCKET_NAME)['LocationConstraint']
 
     client = boto3.client('s3',
                           region_name=region,
                           endpoint_url=f'https://{bucket}.s3.{location}.amazonaws.com',
-                          aws_access_key_id= AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key= AWS_SECRET_ACCESS_KEY)
+                          aws_access_key_id=AWS_ACCESS_KEY_ID,
+                          aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
 
     # filename = secure_filename(image_file.filename)  # This is convenient to validate your filename, otherwise just use file.filename
     url = f"https://{bucket}.s3.{region}.amazonaws.com/{bucket}/{key}"
@@ -79,23 +86,15 @@ def upload_image_get_url(image, username):
     return url
 
 
+# @app.before_request  # global user
+# def add_user_to_g():
+    # """If we're logged in, add curr user to Flask global."""
 
+    # if CURR_USER_KEY in session:
+    #     g.user = User.query.get(session[CURR_USER_KEY])
 
-
-
-
-
-
-
-@app.before_request # global user
-def add_user_to_g():
-    """If we're logged in, add curr user to Flask global."""
-
-    if CURR_USER_KEY in session:
-        g.user = User.query.get(session[CURR_USER_KEY])
-
-    else:
-        g.user = None
+    # else:
+    #     g.user = None
 
 
 def do_login(user):
@@ -109,6 +108,7 @@ def do_logout():
 
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
+
 
 @app.post('/signup')
 def signup():
@@ -126,11 +126,8 @@ def signup():
     # when creating file, needs to multi
     image = request.files["image"]
 
-    # breakpoint()
-
     userImg = upload_image_get_url(image, username)
 
-    # TODO: do_login(user)
     user = User.signup(
         username, password, name, hobbies, interests, zipcode, radius, userImg
     )
@@ -138,7 +135,10 @@ def signup():
     serialized = user.serialize()
     db.session.commit()
 
-    return jsonify(user = serialized)
+    token = createToken(username)
+
+    return jsonify(token=token, user=serialized)
+
 
 @app.post('/login')
 def login():
@@ -146,11 +146,16 @@ def login():
     password = request.json["password"]
 
     user = User.authenticate(username, password)
+    serialized = user.serialize()
 
     if user:
         do_login(user)
-        breakpoint()
-        return "yay loggedin "
+        print(CURR_USER_KEY)
+
+        return jsonify(user=serialized)
+
+    print(CURR_USER_KEY)
+
 
 @app.post('/logout')
 def logout():
@@ -160,15 +165,37 @@ def logout():
 
     do_logout()
 
+    return "Successfully logged out"
+
 # ##############################################################################
 # # General user routes: IF LOGGED IN
 
 # # Show ALL users
-# @app.get('/users')
+
+@app.get('/users')
+def get_all_users():
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    users = User.query.all()
+
+    serialized = [u.serialize() for u in users]
+
+    return jsonify(users=serialized)
+
 
 # # Show one user
-# @app.get('/users/<username>')
+@app.get('/users/<username>')
+def get_one_user(username):
 
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get_or_404(username)
+    serialized = user.serialize()
+    return jsonify( user= serialized)
 
 # ##############################################################################
 # # Messages routes:
@@ -179,3 +206,4 @@ def logout():
 
 # Create a new message
 # @app.route('/messages/<username>', methods=["GET","POST"])
+

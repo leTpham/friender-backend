@@ -10,28 +10,28 @@ db = SQLAlchemy()
 # TODO: Set method to compare whether both true,
 
 
-# class Swiped(db.Model):
+class Swiped(db.Model):
 
-#     __tablename__ = "swiped"
+    __tablename__ = "swiped"
 
-#     u1 = db.Column(
-#         db.Text,
-#         db.ForeignKey("users.id"),
-#         primary_key=True,
-#     )
-#     u2 = db.Column(
-#         db.Text,
-#         db.ForeignKey("users.id"),
-#         primary_key=True,
-#     )
-#     u1_swiped = db.Column(
-#         db.Boolean,
-#         nullable=True
-#     )
-#     u2_swiped = db.Column(
-#         db.Boolean,
-#         nullable=True
-#     )
+    u1 = db.Column(
+        db.Text,
+        db.ForeignKey("users.id"),
+        primary_key=True,
+    )
+    u2 = db.Column(
+        db.Text,
+        db.ForeignKey("users.id"),
+        primary_key=True,
+    )
+    u1_swiped = db.Column(
+        db.Boolean,
+        nullable=True
+    )
+    u2_swiped = db.Column(
+        db.Boolean,
+        nullable=True
+    )
 
 class User(db.Model):
     """User in the system."""
