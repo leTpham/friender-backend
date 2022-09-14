@@ -2,21 +2,21 @@ import os
 import boto3
 from dotenv import load_dotenv
 
+from flask import Flask, render_template, request, flash, redirect, session, g, jsonify
+
+from sqlalchemy.exc import IntegrityError
+
+from models import db, connect_db, User
+
 
 load_dotenv()
 AWS_ACCESS_KEY_ID=os.environ['AWS_ACCESS_KEY_ID']
 AWS_SECRET_ACCESS_KEY=os.environ['AWS_SECRET_ACCESS_KEY']
-
-
-from flask import Flask, render_template, request, flash, redirect, session, g
-
-from sqlalchemy.exc import IntegrityError
-
-# from models import db, connect_db, User, Message, Swiped
+DATABSE_URL=os.environ['DATABASE_URL']
+BUCKET_NAME=os.environ['BUCKET_NAME']
 
 
 CURR_USER_KEY = "curr_user"
-app = Flask(__name__)
 
 s3 = boto3.client(
   "s3",
@@ -25,37 +25,33 @@ s3 = boto3.client(
   aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )
 
-
-
-
-
-
+app = Flask(__name__)
 
 # Get DB_URI from environ variable (useful for production/testing) or,
 # if not set there, use development local db.
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# app.config['SQLALCHEMY_DATABASE_URI'] = (
-#     os.environ['DATABASE_URL'].replace("postgres://", "postgresql://"))
-# app.config['SQLALCHEMY_ECHO'] = False
-# app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
-# app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///friender'
+    # os.environ['DATABASE_URL'].replace("postgres://", "postgresql://"))
+app.config['SQLALCHEMY_ECHO'] = False
+app.config['SECRET_KEY'] = "SHHH"
+# os.environ['SECRET_KEY']
 
-# connect_db(app)
+connect_db(app)
 
 ##############################################################################
 # User signup/login/logout
 
 def upload_image_get_url(image):
     #Create bucket later for this app
-    bucket_name = "lepham-test-bucket"
-    key = "cat-pic"
+
+    key = image
     content_type ='image/jpeg'
 
     s3 = boto3.resource('s3')
-    bucket = s3.Bucket(bucket_name)
+    bucket = s3.Bucket(BUCKET_NAME)
     bucket.upload_file(image, key)
-    location = boto3.client('s3').get_bucket_location(Bucket=bucket_name)['LocationConstraint']
-    url = "https://s3-{}.amazonaws.com/{}/{}".format (location, bucket_name, key, content_type )
+    location = boto3.client('s3').get_bucket_location(Bucket=BUCKET_NAME)['LocationConstraint']
+    url = "https://s3-{}.amazonaws.com/{}/{}".format (location, BUCKET_NAME, key, content_type )
     print(url)
     return (url)
 
@@ -73,13 +69,32 @@ def add_user_to_g():
         g.user = None
 
 # TODO: How to get form info from JS to python? request.form?
-@app.route('/signup', methods=["POST"])
+@app.post('/signup')
 def signup():
-    # if CURR_USER_KEY in session:
-    # del session[CURR_USER_KEY]
+    if CURR_USER_KEY in session:
+        del session[CURR_USER_KEY]
 
-    image = request.json["image"];
-    return upload_image_get_url(image)
+    username = request.json["username"]
+    password = request.json["password"]
+    name = request.json["name"]
+    hobbies = request.json["hobbies"]
+    interests = request.json["interests"]
+    zipcode = request.json["zipcode"]
+    radius = request.json["radius"]
+    image = request.json["image"]
+
+    # userImg = upload_image_get_url(image)
+
+    user = User.signup(
+        username, password, name, hobbies, interests, zipcode, radius, image
+    )
+
+    serialized = user.serialize()
+    db.session.commit()
+
+    return jsonify(user = serialized)
+
+
 
 
 

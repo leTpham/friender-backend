@@ -7,6 +7,31 @@ from flask_sqlalchemy import SQLAlchemy
 bcrypt = Bcrypt()
 db = SQLAlchemy()
 
+# TODO: Set method to compare whether both true,
+
+
+# class Swiped(db.Model):
+
+#     __tablename__ = "swiped"
+
+#     u1 = db.Column(
+#         db.Text,
+#         db.ForeignKey("users.id"),
+#         primary_key=True,
+#     )
+#     u2 = db.Column(
+#         db.Text,
+#         db.ForeignKey("users.id"),
+#         primary_key=True,
+#     )
+#     u1_swiped = db.Column(
+#         db.Boolean,
+#         nullable=True
+#     )
+#     u2_swiped = db.Column(
+#         db.Boolean,
+#         nullable=True
+#     )
 
 class User(db.Model):
     """User in the system."""
@@ -14,7 +39,7 @@ class User(db.Model):
     __tablename__ = 'users'
 
     username = db.Column(
-        db.text,
+        db.Text,
         primary_key=True,
     )
 
@@ -48,10 +73,32 @@ class User(db.Model):
 
     image = db.Column(
         db.Text,
+        nullable=True,
     )
 
-    messages = db.relationship('Message', backref="user")
-    # TODO: relationship b/t swiped & user 
+    def serialize(self):
+        """Serialize to dictionary"""
+
+        return{
+            "username": self.username,
+            "name": self.name,
+            "hobbies" : self.hobbies,
+            "interests": self.interests,
+            "zipcode" : self.zipcode,
+            "radius" : self.radius,
+            "image" : self.image
+        }
+
+    # messages = db.relationship('Message', backref="user")
+    # TODO: relationship b/t swiped & user
+
+    # swiping = db.relationship(
+    #     "User",
+    #     secondary="notswiped",
+    #     primaryjoin=(Swiped.u1 == id),
+    #     secondaryjoin=(Swiped.u2 == id),
+    #     backref="swiped",
+    # )
 
     def __repr__(self):
         return f"<User #{self.id}: {self.username}, {self.email}>"
@@ -77,6 +124,7 @@ class User(db.Model):
         )
 
         db.session.add(user)
+
         return user
 
     @classmethod
@@ -101,53 +149,28 @@ class User(db.Model):
         return False
 
 
-class Message(db.Model):
+# class Message(db.Model):
 
-    __tablename__ = "messages"
+#     __tablename__ = "messages"
 
-    sender = db.Column(
-        db.Text,
-        db.ForeignKey("users.id"),
-        primary_key=True,
-    )
-    reciever = db.Column(
-        db.Text,
-        db.ForeignKey("users.id"),
-        primary_key=True,
-    )
-    msg = db.Column(
-        db.Text
-    )
-    timestamp = db.Column(
-        db.DateTime,
-        nullable=False,
-        default=datetime.utcnow,
-    )
-
-#TODO: Set method to compare whether both true,
-class Swiped(db.Model):
-
-    __tablename__ = "swiped"
-
-    u1 = db.Column(
-        db.Text,
-        db.ForeignKey("users.id"),
-        primary_key=True,
-    )
-    u2 = db.Column(
-        db.Text,
-        db.ForeignKey("users.id"),
-        primary_key=True,
-    )
-    u1_swiped = db.Column(
-        db.Boolean,
-        nullable=True
-    )
-    u2_swiped = db.Column(
-        db.Boolean,
-        nullable=True
-    )
-
+#     sender = db.Column(
+#         db.Text,
+#         db.ForeignKey("users.id"),
+#         primary_key=True,
+#     )
+#     reciever = db.Column(
+#         db.Text,
+#         db.ForeignKey("users.id"),
+#         primary_key=True,
+#     )
+#     msg = db.Column(
+#         db.Text
+#     )
+#     timestamp = db.Column(
+#         db.DateTime,
+#         nullable=False,
+#         default=datetime.utcnow,
+#     )
 
 def connect_db(app):
     """Connect this database to provided Flask app.
