@@ -33,8 +33,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///friender'
     # os.environ['DATABASE_URL'].replace("postgres://", "postgresql://"))
 app.config['SQLALCHEMY_ECHO'] = False
-app.config['SECRET_KEY'] = "SHHH"
-# os.environ['SECRET_KEY']
+app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 
 connect_db(app)
 
@@ -68,7 +67,18 @@ def add_user_to_g():
     else:
         g.user = None
 
-# TODO: How to get form info from JS to python? request.form?
+def do_login(user):
+    """Log in user."""
+
+    session[CURR_USER_KEY] = user.username
+
+
+def do_logout():
+    """Log out user."""
+
+    if CURR_USER_KEY in session:
+        del session[CURR_USER_KEY]
+
 @app.post('/signup')
 def signup():
     if CURR_USER_KEY in session:
@@ -84,7 +94,7 @@ def signup():
     image = request.json["image"]
 
     # userImg = upload_image_get_url(image)
-
+    # TODO: do_login(user)
     user = User.signup(
         username, password, name, hobbies, interests, zipcode, radius, image
     )
@@ -94,19 +104,24 @@ def signup():
 
     return jsonify(user = serialized)
 
+@app.post('/login')
+def login():
+    username = request.json["username"]
+    password = request.json["password"]
 
+    user = User.authenticate(username, password)
 
+    if user:
+        do_login(user)
+        return "yay loggedin "
 
+@app.post('/logout')
+def logout():
 
+    if CURR_USER_KEY not in session:
+        flash("You are not logged in")
 
-
-
-
-# @app.route('/login', method="POST")
-
-
-# @app.route('/logout', method="POST")
-
+    do_logout()
 
 # ##############################################################################
 # # General user routes: IF LOGGED IN
