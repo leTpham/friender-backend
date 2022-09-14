@@ -1,6 +1,7 @@
 import os
 import boto3
 from dotenv import load_dotenv
+# from werkzeug import secure_filename
 
 from flask import Flask, render_template, request, flash, redirect, session, g, jsonify
 
@@ -40,19 +41,48 @@ connect_db(app)
 ##############################################################################
 # User signup/login/logout
 
-def upload_image_get_url(image):
+def upload_image_get_url(image, username):
     #Create bucket later for this app
 
-    key = image
-    content_type ='image/jpeg'
+    # key = username
+    # content_type ='image/jpeg'
 
-    s3 = boto3.resource('s3')
-    bucket = s3.Bucket(BUCKET_NAME)
-    bucket.upload_file(image, key)
+    # s3 = boto3.resource('s3')
+    # bucket = s3.Bucket(BUCKET_NAME)
+    # bucket.upload_file(image, key)
+    # location = boto3.client('s3').get_bucket_location(Bucket=BUCKET_NAME)['LocationConstraint']
+    # url = "https://s3-{}.amazonaws.com/{}/{}".format (location, BUCKET_NAME, key, content_type )
+    # print(url)
+    # breakpoint()
+    # return (url)
+
+    key = image.filename
+    bucket = BUCKET_NAME
+    content_type = 'request.mimetype'
+    image_file = image
+    region = 'us-west-1'
     location = boto3.client('s3').get_bucket_location(Bucket=BUCKET_NAME)['LocationConstraint']
-    url = "https://s3-{}.amazonaws.com/{}/{}".format (location, BUCKET_NAME, key, content_type )
-    print(url)
-    return (url)
+
+    client = boto3.client('s3',
+                          region_name=region,
+                          endpoint_url=f'https://{bucket}.s3.{location}.amazonaws.com',
+                          aws_access_key_id= AWS_ACCESS_KEY_ID,
+                          aws_secret_access_key= AWS_SECRET_ACCESS_KEY)
+
+    # filename = secure_filename(image_file.filename)  # This is convenient to validate your filename, otherwise just use file.filename
+    url = f"https://{bucket}.s3.{region}.amazonaws.com/{bucket}/{key}"
+    client.put_object(Body=image_file,
+                      Bucket=bucket,
+                      Key=key,
+                      ContentType=content_type)
+
+    return url
+
+
+
+
+
+
 
 
 
@@ -66,6 +96,7 @@ def add_user_to_g():
 
     else:
         g.user = None
+
 
 def do_login(user):
     """Log in user."""
@@ -84,19 +115,24 @@ def signup():
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
 
-    username = request.json["username"]
-    password = request.json["password"]
-    name = request.json["name"]
-    hobbies = request.json["hobbies"]
-    interests = request.json["interests"]
-    zipcode = request.json["zipcode"]
-    radius = request.json["radius"]
-    image = request.json["image"]
+    username = request.form["username"]
+    password = request.form["password"]
+    name = request.form["name"]
+    hobbies = request.form["hobbies"]
+    interests = request.form["interests"]
+    zipcode = request.form["zipcode"]
+    radius = request.form["radius"]
 
-    # userImg = upload_image_get_url(image)
+    # when creating file, needs to multi
+    image = request.files["image"]
+
+    # breakpoint()
+
+    userImg = upload_image_get_url(image, username)
+
     # TODO: do_login(user)
     user = User.signup(
-        username, password, name, hobbies, interests, zipcode, radius, image
+        username, password, name, hobbies, interests, zipcode, radius, userImg
     )
 
     serialized = user.serialize()
@@ -113,6 +149,7 @@ def login():
 
     if user:
         do_login(user)
+        breakpoint()
         return "yay loggedin "
 
 @app.post('/logout')
