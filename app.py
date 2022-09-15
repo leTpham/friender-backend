@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g, 
 from flask_cors import CORS
 from sqlalchemy.exc import IntegrityError
 
-from models import db, connect_db, User, Swiped
+from models import db, connect_db, User
 
 import jwt
 
@@ -54,7 +54,7 @@ connect_db(app)
     #     g.user = None
 
 def createToken(username):
-    encoded_jwt = jwt.encode({"user": username} , SECRET_KEY, algorithm='HS256')
+    encoded_jwt = jwt.encode({"username": username} , SECRET_KEY, algorithm='HS256')
     return encoded_jwt
 
 def upload_image_get_url(image):
@@ -118,19 +118,19 @@ def signup():
     fullName = request.form["fullName"]
     hobbies = request.form["hobbies"]
     interests = request.form["interests"]
-    zipcode = request.form["zipcode"]
-    radius = request.form["radius"]
+    zipcode = int(request.form["zipcode"])
+    radius = int(request.form["radius"])
 
     # when creating file, needs to multi
     image = request.files["image"]
 
-    userImg = upload_image_get_url(image, username)
+    userImg = upload_image_get_url(image)
 
     user = User.signup(
         username, password, fullName, hobbies, interests, zipcode, radius, userImg
     )
 
-    serialized = user.serialize()
+    # serialized = user.serialize()
     db.session.commit()
 
     token = createToken(username)
@@ -144,7 +144,7 @@ def login():
     password = request.json["password"]
 
     user = User.authenticate(username, password)
-    serialized = user.serialize()
+    # serialized = user.serialize()
 
     # if user:
     #     do_login(user)

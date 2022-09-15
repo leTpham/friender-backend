@@ -19,28 +19,28 @@ db = SQLAlchemy()
 
 # u1.likes , u2.likes if u1 is in u2.likes AND u2 is in u1.likes
 
-class Swiped(db.Model):
+# class Swiped(db.Model):
 
-    __tablename__ = "swiped"
+#     __tablename__ = "swiped"
 
-    u1 = db.Column(
-        db.Text,
-        db.ForeignKey("users.username"),
-        primary_key=True,
-    )
-    u2 = db.Column(
-        db.Text,
-        db.ForeignKey("users.username"),
-        primary_key=True,
-    )
-    u1_swiped = db.Column(
-        db.Boolean,
-        nullable=True
-    )
-    u2_swiped = db.Column(
-        db.Boolean,
-        nullable=True
-    )
+#     u1 = db.Column(
+#         db.Text,
+#         db.ForeignKey("users.username"),
+#         primary_key=True,
+#     )
+#     u2 = db.Column(
+#         db.Text,
+#         db.ForeignKey("users.username"),
+#         primary_key=True,
+#     )
+#     u1_swiped = db.Column(
+#         db.Boolean,
+#         nullable=True
+#     )
+#     u2_swiped = db.Column(
+#         db.Boolean,
+#         nullable=True
+#     )
 
 
 
@@ -87,13 +87,13 @@ class User(db.Model):
         nullable=True,
     )
 
-    swiping = db.relationship(
-        "User",
-        secondary="swiped",
-        primaryjoin=(Swiped.u1 == username),
-        secondaryjoin=(Swiped.u2 == username),
-        backref="swipes",
-    )
+    # swiping = db.relationship(
+    #     "User",
+    #     secondary="swiped",
+    #     primaryjoin=(Swiped.u1 == username),
+    #     secondaryjoin=(Swiped.u2 == username),
+    #     backref="swipes",
+    # )
     # user1 can refer to user2 by user1.swiping
     # user2 can refer to user1 by user2.swipes
 
