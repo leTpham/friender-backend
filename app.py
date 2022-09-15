@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 # from werkzeug import secure_filename
 
 from flask import Flask, render_template, request, flash, redirect, session, g, jsonify
-
+from flask_cors import CORS
 from sqlalchemy.exc import IntegrityError
 
 from models import db, connect_db, User, Swiped
@@ -29,6 +29,7 @@ s3 = boto3.client(
 )
 
 app = Flask(__name__)
+CORS(app)
 
 # Get DB_URI from environ variable (useful for production/testing) or,
 # if not set there, use development local db.
