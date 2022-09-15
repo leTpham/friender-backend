@@ -59,7 +59,7 @@ class User(db.Model):
         nullable=False,
     )
 
-    name = db.Column(
+    fullName = db.Column(
         db.Text,
         nullable=False,
     )
@@ -104,7 +104,7 @@ class User(db.Model):
 
         return{
             "username": self.username,
-            "name": self.name,
+            "fullName": self.fullName,
             "hobbies" : self.hobbies,
             "interests": self.interests,
             "zipcode" : self.zipcode,
@@ -124,10 +124,10 @@ class User(db.Model):
     # )
 
     def __repr__(self):
-        return f"<User #{self.username}: {self.name}>"
+        return f"<User #{self.username}: {self.fullName}>"
 
     @classmethod
-    def signup(cls, username, password, name, hobbies, interests, zipcode, radius, image):
+    def signup(cls, username, password, fullName, hobbies, interests, zipcode, radius, image):
         """Sign up user.
 
         Hashes password and adds user to system.
@@ -138,7 +138,7 @@ class User(db.Model):
         user = User(
             username=username,
             password=hashed_pwd,
-            name=name,
+            fullName=fullName,
             hobbies=hobbies,
             interests=interests,
             zipcode=zipcode,

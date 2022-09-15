@@ -7,7 +7,7 @@ db.create_all()
 
 u1 = User(username = "u1",
     password = "u1pw",
-    name = "u1",
+    fullName = "u1",
     hobbies = "running",
     interests = "art",
     zipcode = 90001,
@@ -16,7 +16,7 @@ u1 = User(username = "u1",
 
 u2 = User(username = "u2",
     password = "u2pw",
-    name = "u2",
+    fullName = "u2",
     hobbies = "running",
     interests = "art",
     zipcode = 90002,

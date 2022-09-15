@@ -114,7 +114,7 @@ def signup():
 
     username = request.form["username"]
     password = request.form["password"]
-    name = request.form["name"]
+    fullName = request.form["fullName"]
     hobbies = request.form["hobbies"]
     interests = request.form["interests"]
     zipcode = request.form["zipcode"]
@@ -126,7 +126,7 @@ def signup():
     userImg = upload_image_get_url(image, username)
 
     user = User.signup(
-        username, password, name, hobbies, interests, zipcode, radius, userImg
+        username, password, fullName, hobbies, interests, zipcode, radius, userImg
     )
 
     serialized = user.serialize()
