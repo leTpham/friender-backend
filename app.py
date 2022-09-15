@@ -47,19 +47,20 @@ connect_db(app)
 @app.before_request
 def add_user_to_g():
     header_token = request.headers.get('Authorization')
-
-    token = header_token.replace("Bearer ", "")
-
-    print("TOKEN:", "hi", token)
-    if token:
-        try:
-            print("in try")
-            curr_user = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-            print("CURR USER")
-            g.user = curr_user
-        except:
-            g.user = None
-            print("error")
+    print("HEADER TOKEN", header_token)
+    if header_token:
+        token = header_token.split(" ")[1]
+        print("BEARER TOKEN", token)
+        print("TOKEN:", "hi", token)
+        if token:
+            try:
+                print("in try")
+                curr_user = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+                print("CURR USER")
+                g.user = curr_user
+            except:
+                g.user = None
+                print("error")
     else:
         g.user = None
 
@@ -112,7 +113,9 @@ def signup():
     user = User.signup(
         username, password, fullName, hobbies, interests, zipcode, radius, userImg
     )
-
+    print("USER", user)
+    print("USERNAME", username)
+    print("IMAGE", image)
     # serialized = user.serialize()
     db.session.commit()
 
@@ -140,8 +143,8 @@ def login():
 @app.get('/users')
 def get_all_users():
 
-    if not g.user:
-        return (jsonify(message="Not Authorized"), 401)
+    # if not g.user:
+    #     return (jsonify(message="Not Authorized"), 401)
 
     users = User.query.all()
 
