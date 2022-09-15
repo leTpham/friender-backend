@@ -44,14 +44,24 @@ connect_db(app)
 ##############################################################################
 # User signup/login/logout
 
-# @app.before_request
-# def add_user_to_g():
-    # if there's a token :
-    # curr_user = jwt.decode(encoded_jwt, "secret", algorithms=["HS256"])
-    # g.user = curr_user
+@app.before_request
+def add_user_to_g():
+    header_token = request.headers.get('Authorization')
 
-    # else:
-    #     g.user = None
+    token = header_token.replace("Bearer ", "")
+
+    print("TOKEN:", "hi", token)
+    if token:
+        try:
+            print("in try")
+            curr_user = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            print("CURR USER")
+            g.user = curr_user
+        except:
+            g.user = None
+            print("error")
+    else:
+        g.user = None
 
 def createToken(username):
     encoded_jwt = jwt.encode({"username": username} , SECRET_KEY, algorithm='HS256')
@@ -83,35 +93,8 @@ def upload_image_get_url(image):
 
     return url
 
-
-# @app.before_request  # global user
-# def add_user_to_g():
-#     """If we're logged in, add curr user to Flask global."""
-
-#     if CURR_USER_KEY in session:
-#         g.user = User.query.get(session[CURR_USER_KEY])
-
-#     else:
-#         g.user = None
-
-
-# def do_login(user):
-#     """Log in user."""
-
-#     session[CURR_USER_KEY] = user.username
-
-
-# def do_logout():
-#     """Log out user."""
-
-#     if CURR_USER_KEY in session:
-#         del session[CURR_USER_KEY]
-
-
 @app.post('/signup')
 def signup():
-    # if CURR_USER_KEY in session:
-    #     del session[CURR_USER_KEY]
 
     username = request.form["username"]
     password = request.form["password"]
@@ -144,28 +127,10 @@ def login():
     password = request.json["password"]
 
     user = User.authenticate(username, password)
-    # serialized = user.serialize()
-
-    # if user:
-    #     do_login(user)
-    #     print(CURR_USER_KEY)
 
     token = createToken(username)
 
     return jsonify(token=token)
-
-
-
-# @app.post('/logout')
-# def logout():
-
-    # if CURR_USER_KEY not in session:
-    #     flash("You are not logged in")
-
-    # do_logout()
-
-    # return "Successfully logged out"
-
 
 # ##############################################################################
 # # General user routes: IF LOGGED IN
@@ -174,9 +139,9 @@ def login():
 
 @app.get('/users')
 def get_all_users():
+
     if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
+        return (jsonify(message="Not Authorized"), 401)
 
     users = User.query.all()
 
@@ -189,9 +154,8 @@ def get_all_users():
 @app.get('/users/<username>')
 def get_one_user(username):
 
-    # if not g.user:
-    #     flash("Access unauthorized.", "danger")
-    #     return redirect("/")
+    if not g.user:
+        return (jsonify(message="Not Authorized"), 401)
 
     user = User.query.get_or_404(username)
     serialized = user.serialize()
