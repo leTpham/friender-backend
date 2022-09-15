@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g, 
 
 from sqlalchemy.exc import IntegrityError
 
-from models import db, connect_db, User
+from models import db, connect_db, User, Swiped
 
 import jwt
 
@@ -19,7 +19,7 @@ BUCKET_NAME = os.environ['BUCKET_NAME']
 SECRET_KEY = os.environ['SECRET_KEY']
 
 
-CURR_USER_KEY = "curr_user"
+# CURR_USER_KEY = "curr_user"
 
 s3 = boto3.client(
     "s3",
@@ -43,24 +43,21 @@ connect_db(app)
 ##############################################################################
 # User signup/login/logout
 
+# @app.before_request
+# def add_user_to_g():
+    # if there's a token :
+    # curr_user = jwt.decode(encoded_jwt, "secret", algorithms=["HS256"])
+    # g.user = curr_user
+
+    # else:
+    #     g.user = None
+
 def createToken(username):
     encoded_jwt = jwt.encode({"user": username} , SECRET_KEY, algorithm='HS256')
     return encoded_jwt
 
-def upload_image_get_url(image, username):
+def upload_image_get_url(image):
     # Create bucket later for this app
-
-    # key = username
-    # content_type ='image/jpeg'
-
-    # s3 = boto3.resource('s3')
-    # bucket = s3.Bucket(BUCKET_NAME)
-    # bucket.upload_file(image, key)
-    # location = boto3.client('s3').get_bucket_location(Bucket=BUCKET_NAME)['LocationConstraint']
-    # url = "https://s3-{}.amazonaws.com/{}/{}".format (location, BUCKET_NAME, key, content_type )
-    # print(url)
-    # breakpoint()
-    # return (url)
 
     key = image.filename
     bucket = BUCKET_NAME
@@ -88,32 +85,32 @@ def upload_image_get_url(image, username):
 
 # @app.before_request  # global user
 # def add_user_to_g():
-    # """If we're logged in, add curr user to Flask global."""
+#     """If we're logged in, add curr user to Flask global."""
 
-    # if CURR_USER_KEY in session:
-    #     g.user = User.query.get(session[CURR_USER_KEY])
+#     if CURR_USER_KEY in session:
+#         g.user = User.query.get(session[CURR_USER_KEY])
 
-    # else:
-    #     g.user = None
-
-
-def do_login(user):
-    """Log in user."""
-
-    session[CURR_USER_KEY] = user.username
+#     else:
+#         g.user = None
 
 
-def do_logout():
-    """Log out user."""
+# def do_login(user):
+#     """Log in user."""
 
-    if CURR_USER_KEY in session:
-        del session[CURR_USER_KEY]
+#     session[CURR_USER_KEY] = user.username
+
+
+# def do_logout():
+#     """Log out user."""
+
+#     if CURR_USER_KEY in session:
+#         del session[CURR_USER_KEY]
 
 
 @app.post('/signup')
 def signup():
-    if CURR_USER_KEY in session:
-        del session[CURR_USER_KEY]
+    # if CURR_USER_KEY in session:
+    #     del session[CURR_USER_KEY]
 
     username = request.form["username"]
     password = request.form["password"]
@@ -137,7 +134,7 @@ def signup():
 
     token = createToken(username)
 
-    return jsonify(token=token, user=serialized)
+    return jsonify(token=token)
 
 
 @app.post('/login')
@@ -148,24 +145,26 @@ def login():
     user = User.authenticate(username, password)
     serialized = user.serialize()
 
-    if user:
-        do_login(user)
-        print(CURR_USER_KEY)
+    # if user:
+    #     do_login(user)
+    #     print(CURR_USER_KEY)
 
-        return jsonify(user=serialized)
+    token = createToken(username)
 
-    print(CURR_USER_KEY)
+    return jsonify(token=token)
 
 
-@app.post('/logout')
-def logout():
 
-    if CURR_USER_KEY not in session:
-        flash("You are not logged in")
+# @app.post('/logout')
+# def logout():
 
-    do_logout()
+    # if CURR_USER_KEY not in session:
+    #     flash("You are not logged in")
 
-    return "Successfully logged out"
+    # do_logout()
+
+    # return "Successfully logged out"
+
 
 # ##############################################################################
 # # General user routes: IF LOGGED IN
@@ -189,13 +188,25 @@ def get_all_users():
 @app.get('/users/<username>')
 def get_one_user(username):
 
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
+    # if not g.user:
+    #     flash("Access unauthorized.", "danger")
+    #     return redirect("/")
 
     user = User.query.get_or_404(username)
     serialized = user.serialize()
     return jsonify( user= serialized)
+
+
+# @app.patch('/users/swipe/<username>/<status>')
+# def handle_swipe(username, status):
+#     curr_user = g.user.username
+#     swipee = User.query.get_or_404(username)
+#     if status == "like":
+#         curr_user.swipes.
+
+#     elif status == "reject":
+
+
 
 # ##############################################################################
 # # Messages routes:

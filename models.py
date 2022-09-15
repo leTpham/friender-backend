@@ -7,8 +7,17 @@ from flask_sqlalchemy import SQLAlchemy
 bcrypt = Bcrypt()
 db = SQLAlchemy()
 
-# TODO: Set method to compare whether both true,
+#TWO TABLES: LIKES AND DISLIKES
 
+# LIKES: id | liker | likee
+#         1 | u1    | u2    => u1 likes u2
+
+
+# DISLIKES: id | disliker | disklikee
+#         1 |   u2   | u1   => u2 dislikes u1
+
+
+# u1.likes , u2.likes if u1 is in u2.likes AND u2 is in u1.likes
 
 class Swiped(db.Model):
 
@@ -16,12 +25,12 @@ class Swiped(db.Model):
 
     u1 = db.Column(
         db.Text,
-        db.ForeignKey("users.id"),
+        db.ForeignKey("users.username"),
         primary_key=True,
     )
     u2 = db.Column(
         db.Text,
-        db.ForeignKey("users.id"),
+        db.ForeignKey("users.username"),
         primary_key=True,
     )
     u1_swiped = db.Column(
@@ -32,6 +41,8 @@ class Swiped(db.Model):
         db.Boolean,
         nullable=True
     )
+
+
 
 class User(db.Model):
     """User in the system."""
@@ -76,6 +87,18 @@ class User(db.Model):
         nullable=True,
     )
 
+    swiping = db.relationship(
+        "User",
+        secondary="swiped",
+        primaryjoin=(Swiped.u1 == username),
+        secondaryjoin=(Swiped.u2 == username),
+        backref="swipes",
+    )
+    # user1 can refer to user2 by user1.swiping
+    # user2 can refer to user1 by user2.swipes
+
+
+
     def serialize(self):
         """Serialize to dictionary"""
 
@@ -101,7 +124,7 @@ class User(db.Model):
     # )
 
     def __repr__(self):
-        return f"<User #{self.id}: {self.username}, {self.email}>"
+        return f"<User #{self.username}: {self.name}>"
 
     @classmethod
     def signup(cls, username, password, name, hobbies, interests, zipcode, radius, image):
@@ -147,6 +170,7 @@ class User(db.Model):
                 return user
 
         return False
+
 
 
 # class Message(db.Model):
