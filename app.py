@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g, 
 from flask_cors import CORS
 from sqlalchemy.exc import IntegrityError
 
-from models import db, connect_db, User
+from models import db, connect_db, User, Likes
 
 import jwt
 
@@ -164,6 +164,23 @@ def get_one_user(username):
     serialized = user.serialize()
     return jsonify( user= serialized)
 
+# # Show one user
+@app.post('/users/<username>/like')
+def like_one_user(username):
+
+    if not g.user:
+        return (jsonify(message="Not Authorized"), 401)
+
+    liked_user = User.query.get_or_404(username)
+    current_user = User.query.get_or_404(g.user)
+
+    current_user.liked.append(liked_user)
+
+    db.session.commit()
+
+    # user = User.query.get_or_404(username)
+    # serialized = user.serialize()
+    return jsonify( "woohoo ")
 
 # @app.patch('/users/swipe/<username>/<status>')
 # def handle_swipe(username, status):

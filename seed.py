@@ -1,6 +1,6 @@
 
 from app import db
-from models import User
+from models import Dislikes, Likes, User
 
 db.drop_all()
 db.create_all()
@@ -33,12 +33,15 @@ u2 = User.signup(username = "u2",
 #     u2_swiped=False
 # )
 
+like1 = Likes(liker = "u1", likee = "u2")
+dislike1 = Dislikes(disliker="u2", dislikee="u1")
 
 db.session.add(u1)
 db.session.add(u2)
 
 db.session.commit()
 
-# db.session.add(s1)
+db.session.add(like1)
+db.session.add(dislike1)
 
 db.session.commit()
