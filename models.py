@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 bcrypt = Bcrypt()
 db = SQLAlchemy()
 
-# TWO TABLES: LIKES AND DISLIKES
+#TWO TABLES: LIKES AND DISLIKES
 
 # LIKES: id | liker | likee
 #         1 | u1    | u2    => u1 likes u2
@@ -18,6 +18,7 @@ db = SQLAlchemy()
 
 
 # u1.likes , u2.likes if u1 is in u2.likes AND u2 is in u1.likes
+
 
 class Likes(db.Model):
     __tablename__ = 'likes'
@@ -48,7 +49,6 @@ class Dislikes(db.Model):
         db.ForeignKey('users.username', ondelete="cascade"),
         primary_key=True,
     )
-
 
 # class Swiped(db.Model):
 
@@ -118,21 +118,17 @@ class User(db.Model):
         nullable=True,
     )
 
-    liked = db.relationship(
-        "User",
-        secondary="likes",
-        primaryjoin=(Likes.liker == username),
-        secondaryjoin=(Likes.likee == username),
-        backref="likedme",
-    )
+    # swiping = db.relationship(
+    #     "User",
+    #     secondary="swiped",
+    #     primaryjoin=(Swiped.u1 == username),
+    #     secondaryjoin=(Swiped.u2 == username),
+    #     backref="swipes",
+    # )
+    # user1 can refer to user2 by user1.swiping
+    # user2 can refer to user1 by user2.swipes
 
-    disliked = db.relationship(
-        "User",
-        secondary="dislikes",
-        primaryjoin=(Dislikes.disliker == username),
-        secondaryjoin=(Dislikes.dislikee == username),
-        backref="dislikedme"
-    )
+
 
     def serialize(self):
         """Serialize to dictionary"""
@@ -157,6 +153,22 @@ class User(db.Model):
     #     secondaryjoin=(Swiped.u2 == id),
     #     backref="swiped",
     # )
+
+    liked = db.relationship(
+        "User",
+        secondary="likes",
+        primaryjoin=(Likes.liker == username),
+        secondaryjoin=(Likes.likee == username),
+        backref="likedme",
+    )
+
+    disliked = db.relationship(
+        "User",
+        secondary="dislikes",
+        primaryjoin=(Dislikes.disliker == username),
+        secondaryjoin=(Dislikes.dislikee == username),
+        backref="dislikedme"
+    )
 
     def __repr__(self):
         return f"<User #{self.username}: {self.fullName}>"

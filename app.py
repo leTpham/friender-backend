@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g, 
 from flask_cors import CORS
 from sqlalchemy.exc import IntegrityError
 
-from models import db, connect_db, User, Likes
+from models import db, connect_db, User, Likes, Dislikes
 
 import jwt
 
@@ -166,13 +166,15 @@ def get_one_user(username):
 
     if not g.user:
         return (jsonify(message="Not Authorized"), 401)
-    curr_user = User.query.get_or_404(g.user)
-    curr_user_liked = curr_user.liked
-    curr_user_disliked = curr_user.disliked
+
+    # curr_user = User.query.get_or_404(g.user)
+    # breakpoint()
+    # curr_user_liked = curr_user.liked
+    # curr_user_disliked = curr_user.disliked
 
     user = User.query.get_or_404(username)
-    if user in curr_user_liked or user in curr_user_disliked:
-        return (jsonify(message="We met already"), 404)
+    # if user in curr_user_liked or user in curr_user_disliked:
+    #     return (jsonify(message="We met already"), 404)
 
     serialized = user.serialize()
     return jsonify( user= serialized)
@@ -194,7 +196,10 @@ def like_one_user(username):
     # user = User.query.get_or_404(username)
     # serialized = user.serialize()
 
-    return jsonify( "woohoo ")
+    if current_user in liked_user.liked:
+        return jsonify(message="It's a match!")
+
+    return jsonify( message="woohoo ")
 
 # Dislike one user
 @app.post('/users/<username>/dislike')
