@@ -168,8 +168,14 @@ def get_one_user(username):
 
     if not g.user:
         return (jsonify(message="Not Authorized"), 401)
+    curr_user = User.query.get_or_404(g.user)
+    curr_user_liked = curr_user.liked
+    curr_user_disliked = curr_user.disliked
 
     user = User.query.get_or_404(username)
+    if user in curr_user_liked or user in curr_user_disliked:
+        return (jsonify(message="Not found"), 404)
+        
     serialized = user.serialize()
     return jsonify( user= serialized)
 
