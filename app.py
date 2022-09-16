@@ -18,9 +18,6 @@ DATABSE_URL = os.environ['DATABASE_URL']
 BUCKET_NAME = os.environ['BUCKET_NAME']
 SECRET_KEY = os.environ['SECRET_KEY']
 
-
-# CURR_USER_KEY = "curr_user"
-
 s3 = boto3.client(
     "s3",
     "us-west-1",
@@ -130,6 +127,8 @@ def login():
     password = request.json["password"]
 
     user = User.authenticate(username, password)
+    if user == False:
+        return (jsonify(message="Invalid username/password"), 401)
 
     token = createToken(username)
 
@@ -174,8 +173,8 @@ def get_one_user(username):
 
     user = User.query.get_or_404(username)
     if user in curr_user_liked or user in curr_user_disliked:
-        return (jsonify(message="Not found"), 404)
-        
+        return (jsonify(message="We met already"), 404)
+
     serialized = user.serialize()
     return jsonify( user= serialized)
 
