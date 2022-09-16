@@ -182,6 +182,24 @@ def like_one_user(username):
     # serialized = user.serialize()
     return jsonify( "woohoo ")
 
+
+@app.post('/users/<username>/dislike')
+def dislike_one_user(username):
+
+    if not g.user:
+        return (jsonify(message="Not Authorized"), 401)
+
+    disliked_user = User.query.get_or_404(username)
+    current_user = User.query.get_or_404(g.user)
+
+    current_user.disliked.append(disliked_user)
+
+    db.session.commit()
+
+    # user = User.query.get_or_404(username)
+    # serialized = user.serialize()
+    return jsonify( " sad af ")
+
 # @app.patch('/users/swipe/<username>/<status>')
 # def handle_swipe(username, status):
 #     curr_user = g.user.username
