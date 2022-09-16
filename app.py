@@ -146,9 +146,18 @@ def get_all_users():
     # if not g.user:
     #     return (jsonify(message="Not Authorized"), 401)
 
-    users = User.query.all()
+    current_user = User.query.get_or_404(g.user)
 
-    serialized = [u.serialize() for u in users]
+    already_liked_users_username = [u.username for u in current_user.liked]
+    already_disliked_users_username = [u.username for u in current_user.disliked]
+
+    invalid_usernames = already_liked_users_username + already_disliked_users_username + [current_user.username]
+    valid_users = User.query.filter(
+                User.username.notin_(invalid_usernames))
+    # users = User.query.all()
+
+
+    serialized = [u.serialize() for u in valid_users]
 
     return jsonify(users=serialized)
 
