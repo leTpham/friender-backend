@@ -82,7 +82,6 @@ def upload_image_get_url(image):
                           aws_access_key_id=AWS_ACCESS_KEY_ID,
                           aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
 
-    # filename = secure_filename(image_file.filename)  # This is convenient to validate your filename, otherwise just use file.filename
     url = f"https://{bucket}.s3.{region}.amazonaws.com/{bucket}/{key}"
     client.put_object(Body=image_file,
                       Bucket=bucket,
@@ -142,8 +141,8 @@ def login():
 @app.get('/users')
 def get_all_users():
 
-    # if not g.user:
-    #     return (jsonify(message="Not Authorized"), 401)
+    if not g.user:
+        return (jsonify(message="Not Authorized"), 401)
 
     current_user = User.query.get_or_404(g.user)
 
@@ -161,7 +160,7 @@ def get_all_users():
     return jsonify(users=serialized)
 
 
-# # Show one user
+# Show one user
 @app.get('/users/<username>')
 def get_one_user(username):
 
@@ -178,7 +177,7 @@ def get_one_user(username):
     serialized = user.serialize()
     return jsonify( user= serialized)
 
-# # Show one user
+# Like one user
 @app.post('/users/<username>/like')
 def like_one_user(username):
 
@@ -194,9 +193,10 @@ def like_one_user(username):
 
     # user = User.query.get_or_404(username)
     # serialized = user.serialize()
+
     return jsonify( "woohoo ")
 
-
+# Dislike one user
 @app.post('/users/<username>/dislike')
 def dislike_one_user(username):
 
@@ -214,14 +214,24 @@ def dislike_one_user(username):
     # serialized = user.serialize()
     return jsonify( " sad af ")
 
-# @app.patch('/users/swipe/<username>/<status>')
-# def handle_swipe(username, status):
-#     curr_user = g.user.username
-#     swipee = User.query.get_or_404(username)
-#     if status == "like":
-#         curr_user.swipes.
+# Matches
+@app.get('/matches')
+def show_matches():
 
-#     elif status == "reject":
+    if not g.user:
+        return (jsonify(message="Not Authorized"), 401)
+
+    current_user = User.query.get_or_404(g.user)
+    matches = []
+    liked_by_current_user = current_user.liked
+    for u in liked_by_current_user:
+        if current_user in u.liked:
+            matches.append(u)
+
+    serialized=[m.serialize() for m in matches]
+    return jsonify(matches=serialized)
+
+
 
 
 

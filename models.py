@@ -50,8 +50,6 @@ class Dislikes(db.Model):
     )
 
 
-
-
 # class Swiped(db.Model):
 
 #     __tablename__ = "swiped"
