@@ -14,7 +14,7 @@ import jwt
 load_dotenv()
 AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
 AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
-DATABSE_URL = os.environ['DATABASE_URL']
+database_url = os.environ['DATABASE_URL']
 BUCKET_NAME = os.environ['BUCKET_NAME']
 SECRET_KEY = os.environ['SECRET_KEY']
 
@@ -24,6 +24,7 @@ s3 = boto3.client(
     aws_access_key_id=AWS_ACCESS_KEY_ID,
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )
+database_url = database_url.replace('postgres://', 'postgresql://')
 
 app = Flask(__name__)
 CORS(app)
@@ -31,7 +32,7 @@ CORS(app)
 # Get DB_URI from environ variable (useful for production/testing) or,
 # if not set there, use development local db.
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///friender'
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 # os.environ['DATABASE_URL'].replace("postgres://", "postgresql://"))
 app.config['SQLALCHEMY_ECHO'] = False
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
