@@ -14,14 +14,23 @@ u1 = User.signup(username = "u1",
     radius = 10,
     image = "hi.jpg")
 
-u2 = User.signup(username = "u2",
-    password = "u2pw",
-    fullName = "u2",
-    hobbies = "running",
-    interests = "art",
-    zipcode = 90002,
-    radius = 20,
-    image = "hi.jpg")
+# u2 = User.signup(username = "u2",
+#     password = "u2pw",
+#     fullName = "u2",
+#     hobbies = "running",
+#     interests = "art",
+#     zipcode = 90002,
+#     radius = 20,
+#     image = "hi.jpg")
+
+u3 = User.signup(username = "u3",
+    password = "u3pw",
+    fullName = "u3",
+    hobbies = "walking",
+    interests = "eat",
+    zipcode = 90003,
+    radius = 3,
+    image = "https://robohash.org/dictarationeesse.png?size=50x50&set=set1")
 
 # with open('generator/swiped.csv') as swiped:
 #     db.session.bulk_insert_mappings(Swiped, DictReader(swiped))
@@ -33,11 +42,12 @@ u2 = User.signup(username = "u2",
 #     u2_swiped=False
 # )
 
-like1 = Likes(liker = "u1", likee = "u2")
-dislike1 = Dislikes(disliker="u2", dislikee="u1")
+like1 = Likes(liker = "u1", likee = "u3")
+dislike1 = Dislikes(disliker="u3", dislikee="u1")
 
 db.session.add(u1)
-db.session.add(u2)
+# db.session.add(u2)
+db.session.add(u3)
 
 db.session.commit()
 
