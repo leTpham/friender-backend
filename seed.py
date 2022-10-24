@@ -89,6 +89,46 @@ angela = User.signup(username="savebandit",
                      image="https://media.giphy.com/media/9P00PlgUCJxrLwYp9g/giphy.gif")
 
 
+kelly = User.signup(username="thebusinessbitch",
+                     password="password",
+                     fullName="Kelly Kapoor",
+                     hobbies="I talk a lot, so I've learned to just tune myself out.",
+                     interests="Sometimes I get so bored I just want to scream, and then sometimes I actually do scream. I just sort of feel out what the situation calls for.",
+                     zipcode=18503,
+                     radius=10,
+                     image="https://media.giphy.com/media/0hPFLMvEzvyxMdMc9i/giphy.gif")
+
+# toby = User.signup(username="",
+#                      password="password",
+#                      fullName="",
+#                      hobbies="",
+#                      interests="",
+#                      zipcode=18503,
+#                      radius=10,
+#                      image="")
+
+# name = User.signup(username="",
+#                      password="password",
+#                      fullName="",
+#                      hobbies="",
+#                      interests="",
+#                      zipcode=18503,
+#                      radius=10,
+#                      image="")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 like1 = Likes(liker="worldsbestboss", likee="wunderkind")
 like2 = Likes(liker="assistantregionalmanager", likee="worldsbestboss")
 like3 = Likes(liker="dave", likee="receptionitis15")
